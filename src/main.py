@@ -2,6 +2,11 @@ import tkinter as tk
 import numpy as np
 import random as rn
 from time import sleep
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
 
 class person():
     def __init__(self,window,position,radius,velocity,status):
@@ -25,7 +30,6 @@ class person():
 
 
     def move_person(self,canvas):
-        #print(self.shape)
         canvas.move(self.shape,self.velocity[0],self.velocity[1])
 
     def collided(self,other):
@@ -46,6 +50,9 @@ class Root(tk.Tk):
 
         self.geometry(str(self.width)+"x"+str(self.height))
         
+        self.frame_graph = tk.Frame(self,height=150)
+        self.frame_graph.pack()
+
         self.frame_canvas = tk.Frame(self)
         self.frame_canvas.pack(fill=tk.BOTH,side=tk.LEFT,expand= True)
         
@@ -55,6 +62,11 @@ class Root(tk.Tk):
 
         self.create_widgets()
         self.run=True
+        self.pause = False
+        self.time_var = 0
+
+        self.x = np.array([0])
+        self.y = np.array([0,0,0])
 
     def _destroy(self):
         self.run=False
@@ -62,6 +74,9 @@ class Root(tk.Tk):
     
     def create_widgets(self):
         
+        self.canvas_graph = tk.Canvas(self.frame_graph,bg="white",width=1200,height=150)
+        self.canvas_graph.pack(fill=tk.BOTH,expand=True)
+
         self.canvas = tk.Canvas(self.frame_canvas,bg= "white",width=1000,height=800)
         self.canvas.pack(fill=tk.BOTH,expand=True)
 
@@ -86,10 +101,25 @@ class Root(tk.Tk):
         self.trans.insert(0,"100")
 
 
-        self.status_vector = np.zeros(3)
+        self.status_vector = np.zeros([1,3])
 
-        startButton = tk.Button(self.frame_widgets,text="Start",command=self.begin_simulation,width=21)
-        startButton.grid(row=4,column=0,columnspan=3,sticky="w")
+        startButton = tk.Button(self.frame_widgets,text="Start",command=self.begin_simulation,width=9)
+        startButton.grid(row=4,column=0,sticky="w")
+
+        pauseButton = tk.Button(self.frame_widgets,text="Pause",command=self.end_simulation,width=9)
+        pauseButton.grid(row=4,column=1,sticky="w")
+
+    def end_simulation(self):
+        if(self.pause == False):
+            self.run = False
+            self.pause = True
+        else:
+            print("checking")
+            self.run = True
+            self.pause = False
+            self.loop_wrapper()
+
+
         
     def create_circle(self,x,y,r=8,color="blue"):
         return self.canvas.create_oval(x-r,y-r,x+r,y+r,fill=color)
@@ -98,12 +128,25 @@ class Root(tk.Tk):
         self.status_vector = np.zeros(3)
         for i in self.persons:
             self.status_vector[i.status]+=1
-        
-        print(self.status_vector)
+
+    def make_graph(self):
+        #TODO this is very slow , have to change update 
+
+        f = Figure(figsize=(10,2))
+        a = f.add_subplot(111)
+        a.clear()
+        a.plot(self.x[1:],self.y[1:,0],'b-')
+        a.plot(self.x[1:],self.y[1:,1],'g-')
+        a.plot(self.x[1:],self.y[1:,2],'r-')
+
+        for i in self.frame_graph.pack_slaves():
+            i.destroy()
+        self.graph = FigureCanvasTkAgg(f, self.frame_graph)
+        self.graph.draw()
+        self.graph.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
     def loop(self):
-        # TO DO -- check collision
-        #print(self.canvas)
+        self.time_var+=1
 
         for i in self.persons:
             i.position[0]+=i.velocity[0]
@@ -135,9 +178,23 @@ class Root(tk.Tk):
             i.move_person(self.canvas)
         
         self.count_status()
+        
+        self.x = np.vstack((self.x,self.time_var))
+        self.y = np.vstack((self.y,self.status_vector))
+
+        self.make_graph()
+
+
+    def loop_wrapper(self):
+        
+        while self.run:
+            self.canvas.update()
+            self.after(1,self.loop())
 
     def begin_simulation(self):
-
+        
+        self.run = True
+        self.canvas.delete("all")
         self.noPeople = int(self.start.get())
         self.prob_val = int(self.prob.get())
         self.recovery_time = int(self.time.get())
@@ -161,9 +218,8 @@ class Root(tk.Tk):
             temp = person(self,[x,y],self.radius,[vx,vy],s)
             self.persons.append(temp)
 
-        while self.run:
-            self.canvas.update()
-            self.after(10,self.loop())
+        self.loop_wrapper()
+        
 
 def main():
     window = Root()
