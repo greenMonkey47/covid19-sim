@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import matplotlib.animation as animation
 
 
 class person():
@@ -65,8 +66,8 @@ class Root(tk.Tk):
         self.pause = False
         self.time_var = 0
 
-        self.x = np.array([0])
-        self.y = np.array([0,0,0])
+        self.x = np.vstack((np.array([0]),np.array([0])))
+        self.y = np.vstack((np.array([0,0,0]),np.array([0,0,0]))) 
 
     def _destroy(self):
         self.run=False
@@ -74,6 +75,8 @@ class Root(tk.Tk):
     
     def create_widgets(self):
         
+        
+
         self.canvas_graph = tk.Canvas(self.frame_graph,bg="white",width=1200,height=150)
         self.canvas_graph.pack(fill=tk.BOTH,expand=True)
 
@@ -100,6 +103,9 @@ class Root(tk.Tk):
         self.trans.grid(row=3,column=1)
         self.trans.insert(0,"100")
 
+        self.f = Figure(figsize=(10,2))
+        self.a = self.f.add_subplot(111)
+        self.graph = FigureCanvasTkAgg(self.f, self.canvas_graph)
 
         self.status_vector = np.zeros([1,3])
 
@@ -120,7 +126,7 @@ class Root(tk.Tk):
             self.loop_wrapper()
 
 
-        
+
     def create_circle(self,x,y,r=8,color="blue"):
         return self.canvas.create_oval(x-r,y-r,x+r,y+r,fill=color)
 
@@ -129,19 +135,14 @@ class Root(tk.Tk):
         for i in self.persons:
             self.status_vector[i.status]+=1
 
+
+
     def make_graph(self):
-        #TODO this is very slow , have to change update 
 
-        f = Figure(figsize=(10,2))
-        a = f.add_subplot(111)
-        a.clear()
-        a.plot(self.x[1:],self.y[1:,0],'b-')
-        a.plot(self.x[1:],self.y[1:,1],'g-')
-        a.plot(self.x[1:],self.y[1:,2],'r-')
-
-        for i in self.frame_graph.pack_slaves():
-            i.destroy()
-        self.graph = FigureCanvasTkAgg(f, self.frame_graph)
+        self.b_line = self.a.plot(self.x[1:],self.y[1:,0],'b-')
+        self.g_line = self.a.plot(self.x[1:],self.y[1:,1],'g-')
+        self.r_line = self.a.plot(self.x[1:],self.y[1:,2],'r-')
+    
         self.graph.draw()
         self.graph.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
@@ -181,7 +182,6 @@ class Root(tk.Tk):
         
         self.x = np.vstack((self.x,self.time_var))
         self.y = np.vstack((self.y,self.status_vector))
-
         self.make_graph()
 
 
@@ -201,6 +201,7 @@ class Root(tk.Tk):
         self.trans_rate = int(self.trans.get())
         self.radius =8
         self.persons = []
+        
 
         for i in range(0,self.noPeople):
             
@@ -217,7 +218,8 @@ class Root(tk.Tk):
             
             temp = person(self,[x,y],self.radius,[vx,vy],s)
             self.persons.append(temp)
-
+        
+        
         self.loop_wrapper()
         
 
