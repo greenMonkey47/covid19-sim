@@ -76,10 +76,10 @@ class Root(tk.Tk):
     def create_widgets(self):
         
         
-
+        '''
         self.canvas_graph = tk.Canvas(self.frame_graph,bg="white",width=1200,height=150)
         self.canvas_graph.pack(fill=tk.BOTH,expand=True)
-
+        '''
         self.canvas = tk.Canvas(self.frame_canvas,bg= "white",width=1000,height=800)
         self.canvas.pack(fill=tk.BOTH,expand=True)
 
@@ -96,16 +96,18 @@ class Root(tk.Tk):
         tk.Label(self.frame_widgets, text="Time").grid(row=2,sticky="w")
         self.time = tk.Entry(self.frame_widgets)
         self.time.grid(row=2,column=1)
-        self.time.insert(0,"30")
+        self.time.insert(0,"100")
 
         tk.Label(self.frame_widgets, text="Trasmission").grid(row=3,sticky="w")
         self.trans = tk.Entry(self.frame_widgets)
         self.trans.grid(row=3,column=1)
         self.trans.insert(0,"100")
 
-        self.f = Figure(figsize=(10,2))
-        self.a = self.f.add_subplot(111)
-        self.graph = FigureCanvasTkAgg(self.f, self.canvas_graph)
+        self.f = Figure(figsize=(12,2))
+        self.a = self.f.add_subplot(111,xlim=(0,500),ylim=(0,100))
+        self.graph = FigureCanvasTkAgg(self.f, self.frame_graph)
+        self.graph.draw()
+
 
         self.status_vector = np.zeros([1,3])
 
@@ -142,7 +144,7 @@ class Root(tk.Tk):
         self.b_line = self.a.plot(self.x[1:],self.y[1:,0],'b-')
         self.g_line = self.a.plot(self.x[1:],self.y[1:,1],'g-')
         self.r_line = self.a.plot(self.x[1:],self.y[1:,2],'r-')
-    
+
         self.graph.draw()
         self.graph.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
@@ -189,7 +191,7 @@ class Root(tk.Tk):
         
         while self.run:
             self.canvas.update()
-            self.after(1,self.loop())
+            self.after(10,self.loop())
 
     def begin_simulation(self):
         
