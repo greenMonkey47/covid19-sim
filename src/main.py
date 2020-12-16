@@ -44,7 +44,7 @@ class Root(tk.Tk):
 
     def __init__(self):
         super(Root,self).__init__()
-        self.title("Test")
+        self.title("Disease Spread Similation")
         
         self.width = 1200
         self.height = 800
@@ -152,15 +152,17 @@ class Root(tk.Tk):
         self.time_var+=1
 
         for i in self.persons:
-            i.position[0]+=i.velocity[0]
-            if(i.position[0]>=self.canvas.winfo_width() or i.position[0]<=0):
-                i.velocity[0]=-i.velocity[0]
+            
 
-            i.position[1]+=i.velocity[1]
-            if(i.position[1]>=self.canvas.winfo_height() or i.position[1]<=0):
+            if(i.position[0] + i.velocity[0] + i.radius >=self.canvas.winfo_width() or i.position[0]+i.velocity[0]- i.radius<=0):
+                i.velocity[0]=-i.velocity[0]
+            
+            if(i.position[1] + i.velocity[1] + i.radius >=self.canvas.winfo_height() or i.position[1]+i.velocity[1] - i.radius<=0):
                 i.velocity[1]=-i.velocity[1]
 
-            
+            i.position[0]+=i.velocity[0]
+            i.position[1]+=i.velocity[1]
+
             for j in self.persons:
                 if(i==j):
                     pass
@@ -191,7 +193,7 @@ class Root(tk.Tk):
         
         while self.run:
             self.canvas.update()
-            self.after(10,self.loop())
+            self.after(1,self.loop())
 
     def begin_simulation(self):
         
@@ -207,8 +209,8 @@ class Root(tk.Tk):
 
         for i in range(0,self.noPeople):
             
-            x = rn.randint(0,self.width-8)
-            y = rn.randint(0,self.height-8)
+            x = rn.randint(self.radius,self.canvas.winfo_width()-self.radius)
+            y = rn.randint(self.radius,self.canvas.winfo_height()-self.radius)
 
             vx = rn.randint(-10,10)
             vy = rn.randint(-10,10)
@@ -227,7 +229,7 @@ class Root(tk.Tk):
 
 def main():
     window = Root()
-    window.after(20)
+    window.after(1)
     window.protocol("WM_DELETE_WINDOW", window._destroy)
     window.mainloop()
     window.destroy()
